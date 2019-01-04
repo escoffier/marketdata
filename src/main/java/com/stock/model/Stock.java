@@ -1,16 +1,25 @@
 package com.stock.model;
 
-public class Stock {
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.io.Serializable;
+
+public class Stock implements Serializable {
+
+    private static final long serialVersionUID = 111L;
 
     private String ticker;
 
     private StockExchange stockExchange;
 
     public Stock() {
-
+        this.ticker = null;
     }
 
-    public Stock(String ticker, StockExchange stockExchange) {
+    @JsonCreator
+    public Stock(@JsonProperty(value = "ticker", required = true) String ticker,
+                 @JsonProperty(value = "stockExchange", required = true) StockExchange stockExchange) {
         this.ticker = ticker;
         this.stockExchange = stockExchange;
     }

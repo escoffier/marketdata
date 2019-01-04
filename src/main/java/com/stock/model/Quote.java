@@ -1,9 +1,18 @@
 package com.stock.model;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.UUID;
 
-public class Quote {
+public class Quote implements Serializable {
+
+    private static final long serialVersionUID = 10001L;
+
+    public static final String  OBJECT_KEY = "quote_key";
+    public static final String  OBJECT_KEY1 = "quote_key1";
+
+    private String id;
     private Stock stock;
     private String price;
     private long timestamp;
@@ -14,9 +23,25 @@ public class Quote {
         this(null, null);
     }
 
+    public Quote(String id, Stock stock, String price, long timestamp) {
+        this.id = id;
+        this.stock = stock;
+        this.price = price;
+        this.timestamp = timestamp;
+    }
+
     public Quote(Stock stock, String price) {
         this.stock = stock;
         this.price = price;
+        this.id = UUID.randomUUID().toString();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Stock getStock() {
@@ -39,7 +64,7 @@ public class Quote {
         return this.timestamp;
     }
 
-    public String getTimeString() {
+    private String getTimeString() {
         return format.format(new Date(timestamp));
     }
 
@@ -49,7 +74,6 @@ public class Quote {
 
     @Override
     public String toString() {
-        return "Quote [time=" + getTimeString() + ", stock=" + stock + ", price=" + price + "]";
-
+        return "Quote [id = " + id +  ", time=" + getTimeString() + ", stock=" + stock + ", price=" + price + "]";
     }
 }
