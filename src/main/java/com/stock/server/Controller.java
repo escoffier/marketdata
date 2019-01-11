@@ -22,7 +22,7 @@ public class Controller {
     @GetMapping("/quote/{id}")
     Quote getQuote(@PathVariable("id") String id) {
 
-        Quote quote = redisHashMapping.getQuote(id);
+        Quote quote = redisHashMapping.getQuote1(id);
         //Quote quote = quoteOperation.getHash(id);
         return quote;
     }

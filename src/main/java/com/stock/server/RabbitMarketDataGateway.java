@@ -5,11 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.stock.MarketDataGateway;
 import com.stock.repository.PersonRepository;
 import com.stock.model.*;
+import com.stock.repository.quote.QuoteRepository;
+import com.stock.repository.stockinfo.StockInfoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -27,6 +30,10 @@ public class RabbitMarketDataGateway implements MarketDataGateway {
 
     private final List<MockStock> stocks = new ArrayList<MockStock>();
 
+    private Iterable<StockInfo> stockInfoIterable;
+
+    private List<String> stockNoList = new ArrayList<>();
+
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
@@ -41,6 +48,12 @@ public class RabbitMarketDataGateway implements MarketDataGateway {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private  StockInfoRepository stockInfoRepository;
+
+    @Autowired
+    private QuoteRepository quoteRepository;
 
     public RabbitMarketDataGateway() {
         this.stocks.add(new MockStock("AAPL", StockExchange.shanghai, 255));
@@ -64,37 +77,113 @@ public class RabbitMarketDataGateway implements MarketDataGateway {
         //Quote quote = generateFakeQuote();
         //Stock stock = quote.getStock();
 
-        Quote quote = getQuote();
-        Stock stock = quote.getStock();
+//        Quote quote = getQuote();
+//        Stock stock = quote.getStock();
+//
+//        redisHashMapping.writeHash(quote.getId(), quote);
+//
+//        String routingKey = "stock.quotes." + stock.getStockExchange() + "." + stock.getTicker();
+//        rabbitTemplate.convertAndSend(routingKey, quote);
 
-        redisHashMapping.writeHash(quote.getId(), quote);
-        //quoteOperation.writeHash(quote.getId(), quote);
+        List<Quote> quoteList = getQuoteList();
+        redisHashMapping.pipelineWrite1(quoteList);
+        for (Quote quote : quoteList) {
+            Stock stock = quote.getStock();
 
+            quoteRepository.save(quote);
+            String routingKey = "stock.quotes." + stock.getStockExchange() + "." + stock.getTicker();
+            rabbitTemplate.convertAndSend(routingKey, quote);
+        }
 
+    }
+
+    private void cachePerson() {
         Person person = new Person(UUID.randomUUID().toString(), "qiu", "al'thor");
         LOGGER.info("Person id : " + person.getId());
 
         person.setAddress(new Address("emond's field", "andor"));
         repository.save(person);
-
-        LOGGER.info("Sending Market Data for " + stock.getTicker());
-        System.out.println("Sending Market Data for " + stock.getTicker());
-
-        String routingKey = "stock.quotes." + stock.getStockExchange() + "." + stock.getTicker();
-        //getRabbitOperations().convertAndSend(routingKey, quote);
-        rabbitTemplate.convertAndSend(routingKey, quote);
-
     }
 
-    private LinkedList<Quote> getQuotes() {
-        String url = "http://hq.sinajs.cn/list=sh601003,sh601001";
+    private List<Quote> getQuotes() {
+
+        if (!stockInfoIterable.iterator().hasNext()) {
+            stockInfoIterable = stockInfoRepository.findAll();
+        }
+
+        StringBuffer url = new StringBuffer("http://hq.sinajs.cn/list=sh601003,sh601001");
+
+//        stockInfoIterable.forEach(new Consumer<StockInfo>() {
+//            @Override
+//            public void accept(StockInfo stockInfo) {
+//                url.append(",sh").append(stockInfo.getStockNo());
+//
+//            }
+//        });
+
+        //String url = "http://hq.sinajs.cn/list=sh601003,sh601001";
         //String body = (String) restTemplate.getForObject(url, String.class);
 
-        ResponseEntity<Quote> entity = restTemplate.getForEntity(url, Quote.class);
+        //ResponseEntity<List<Quote>> entity = restTemplate.getForEntity(url, new ParameterizedTypeReference<List<Quote>>(){});
+        ResponseEntity<List<Quote>> entity =
+                restTemplate.exchange(url.toString(), HttpMethod.GET, null, new ParameterizedTypeReference<List<Quote>>(){});
 
-        Quote quote = entity.getBody();
-        LOGGER.info("data: " + quote);
-        return new LinkedList<>();
+        List<Quote> quoteList = entity.getBody();
+        LOGGER.info("data: " + quoteList);
+        return quoteList;
+    }
+
+    private List<Quote> getQuoteList() {
+
+        if (stockInfoIterable == null) {
+            stockInfoIterable = stockInfoRepository.findAll();
+            StringBuffer buffer = new StringBuffer(256);
+            int index = 0;
+            Iterator<StockInfo> iterable =  stockInfoIterable.iterator();
+            while (iterable.hasNext()) {
+                buffer.append(",sh").append(iterable.next().getStockNo());
+                index++;
+
+
+                if (index%10 == 0) {
+                    stockNoList.add(buffer.toString());
+                    buffer.delete(0, buffer.length());
+                    //break ;
+                }
+
+                if (index >=100) {
+                    break;
+                }
+            }
+
+            if (buffer.length() > 0) {
+                stockNoList.add(buffer.toString());
+            }
+        }
+
+        QuoteList quoteList = new QuoteList();
+
+        for (String st : stockNoList) {
+            StringBuffer url = new StringBuffer("http://hq.sinajs.cn/list=");
+
+//        stockInfoIterable.forEach( (StockInfo stockInfo)  -> {
+//            url.append(",sh").append(stockInfo.getStockNo());
+//        });
+
+            url.append(st);
+
+            //LOGGER.info(" url: " + url);
+
+            ResponseEntity<QuoteList> entity =
+                    //restTemplate.exchange(url, HttpMethod.GET, null, new ParameterizedTypeReference<List<Quote>>(){});
+                    restTemplate.getForEntity(url.toString(), QuoteList.class);
+
+             quoteList.append(entity.getBody());
+        }
+
+
+        LOGGER.info("data: " + quoteList);
+        return quoteList.getQuoteList();
     }
 
     private Quote getQuote() {

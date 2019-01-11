@@ -54,7 +54,7 @@ public class RabbitClientConfig extends AbstractStockAppRabbitConfiguration {
         return adapter;
     }
 
-    @Bean
+    @Bean("traderJoeQueue")
     public Queue traderJoeQueue() {
         return new AnonymousQueue();
     }
@@ -63,4 +63,5 @@ public class RabbitClientConfig extends AbstractStockAppRabbitConfiguration {
     public AmqpAdmin rabbitAdmin() {
         return new RabbitAdmin(connectionFactory());
     }
+
 }

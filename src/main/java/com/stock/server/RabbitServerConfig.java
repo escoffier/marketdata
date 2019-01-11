@@ -1,6 +1,9 @@
 package com.stock.server;
 
 import com.stock.AbstractStockAppRabbitConfiguration;
+import com.stock.converter.QuoteListConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -16,13 +19,13 @@ import org.springframework.lang.Nullable;
 @Configuration
 public class RabbitServerConfig extends AbstractStockAppRabbitConfiguration {
 
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(RabbitServerConfig.class);
     @Override
     protected void configureRabbitTemplate(RabbitTemplate template) {
         template.setMandatory(true);
         template.setReturnCallback( (Message message, int replyCode, String replyText,
                                      String exchange, String routingKey) -> {
-            System.out.println("-----ReturnCallback: " + replyText);
+            LOGGER.info("-----replyCode: " + replyCode + ", exchange: " + exchange + ", routingKey: " + routingKey);
 
         });
 

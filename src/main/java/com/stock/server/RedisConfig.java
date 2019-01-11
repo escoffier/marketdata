@@ -3,6 +3,7 @@ package com.stock.server;
 import com.stock.converter.AddressToBytesConverter;
 import com.stock.converter.BytesToAddressConverter;
 import com.stock.converter.QuoteConverter;
+import com.stock.converter.QuoteListConverter;
 import com.stock.model.Quote;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -34,12 +35,13 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(reidsConnectionFactory());
 
-        Jackson2JsonRedisSerializer<Quote> jsonRedisSerializer = new Jackson2JsonRedisSerializer<Quote>(Quote.class);
+        Jackson2JsonRedisSerializer<Object> jsonRedisSerializer = new Jackson2JsonRedisSerializer<Object>(Object.class);
         template.setHashKeySerializer(jsonRedisSerializer);
         template.setKeySerializer(new StringRedisSerializer());
 
         template.setHashValueSerializer(jsonRedisSerializer);
         template.setValueSerializer(jsonRedisSerializer);
+        //template.expire()
         return template;
     }
 
@@ -89,14 +91,18 @@ public class RedisConfig {
         //restTemplate.getMessageConverters().add(mappingJackson2HttpMessageConverter());
         //return builder.build();
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(jsquoteConverter());
+        restTemplate.getMessageConverters().add(quoteListConverter());
         return restTemplate;
     }
 
     //@Bean
-    public QuoteConverter jsquoteConverter() {
+    public QuoteConverter jsQuoteConverter() {
         QuoteConverter quoteConverter = new QuoteConverter();
         return quoteConverter;
+    }
+
+    public QuoteListConverter quoteListConverter() {
+        return new QuoteListConverter();
     }
 
     //@Bean

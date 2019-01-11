@@ -1,10 +1,13 @@
 package com.stock.model;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+@Entity
+@Table(name = "quote")
 public class Quote implements Serializable {
 
     private static final long serialVersionUID = 10001L;
@@ -12,11 +15,17 @@ public class Quote implements Serializable {
     public static final String  OBJECT_KEY = "quote_key";
     public static final String  OBJECT_KEY1 = "quote_key1";
 
+    @Id
     private String id;
-    private Stock stock;
+
     private String price;
+
     private long timestamp;
 
+    @Embedded
+    private Stock stock;
+
+    @Transient
     private DateFormat format = DateFormat.getTimeInstance();
 
     public Quote() {

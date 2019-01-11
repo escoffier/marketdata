@@ -3,7 +3,7 @@ package com.stock.converter;
 import com.stock.model.Quote;
 import com.stock.model.Stock;
 import com.stock.model.StockExchange;
-import com.stock.server.RedisHashMapping;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpInputMessage;
@@ -12,13 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.stereotype.Component;
-import org.apache.commons.io.IOUtils;
-import sun.nio.ch.IOUtil;
-
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 
