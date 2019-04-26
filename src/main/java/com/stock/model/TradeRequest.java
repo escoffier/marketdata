@@ -94,4 +94,9 @@ public class TradeRequest {
     public void setId(String id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return "TradeRequest [ticker=" + ticker + ", quantity=" + quantity + ", price" + price + "]";
+    }
 }

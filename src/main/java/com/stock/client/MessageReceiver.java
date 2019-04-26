@@ -1,6 +1,7 @@
 package com.stock.client;
 
 import com.stock.model.Quote;
+import com.stock.model.TradeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,5 +17,9 @@ public class MessageReceiver {
 
     public void receiveMessage(Quote message) {
         LOGGER.info("MessageReceiver Received <" + message + ">  -- " + Thread.currentThread().getName());
+    }
+
+    public  void receiveMessage(TradeResponse tradeResponse) {
+        LOGGER.info("MessageReceiver Received <" + tradeResponse + ">  -- " + Thread.currentThread().getName());
     }
 }

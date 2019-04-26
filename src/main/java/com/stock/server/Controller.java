@@ -29,7 +29,7 @@ public class Controller {
 
     @GetMapping("/person/{id}")
     Person getPerson(@PathVariable("id") String id) {
-        Person person = repository.findById(id).get();
-        return person;
+        return repository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
+        //return person;
     }
 }

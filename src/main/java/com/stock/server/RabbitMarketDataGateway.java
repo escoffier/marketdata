@@ -92,7 +92,7 @@ public class RabbitMarketDataGateway implements MarketDataGateway {
 
             quoteRepository.save(quote);
             String routingKey = "stock.quotes." + stock.getStockExchange() + "." + stock.getTicker();
-            rabbitTemplate.convertAndSend(routingKey, quote);
+            //rabbitTemplate.convertAndSend(routingKey, quote);
         }
 
     }
@@ -165,10 +165,6 @@ public class RabbitMarketDataGateway implements MarketDataGateway {
 
         for (String st : stockNoList) {
             StringBuffer url = new StringBuffer("http://hq.sinajs.cn/list=");
-
-//        stockInfoIterable.forEach( (StockInfo stockInfo)  -> {
-//            url.append(",sh").append(stockInfo.getStockNo());
-//        });
 
             url.append(st);
 

@@ -40,9 +40,10 @@ public class RabbitClientConfig extends AbstractStockAppRabbitConfiguration {
     DirectMessageListenerContainer directContainer(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
         DirectMessageListenerContainer directMessageListenerContainer = new DirectMessageListenerContainer();
         directMessageListenerContainer.setConnectionFactory(connectionFactory);
-        directMessageListenerContainer.setQueues(marketDataQueue());
+        directMessageListenerContainer.setQueues(marketDataQueue(), traderJoeQueue());
         directMessageListenerContainer.setMessageListener(listenerAdapter);
         directMessageListenerContainer.setConsumersPerQueue(3);
+        directMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.AUTO);
         return directMessageListenerContainer;
     }
 
@@ -54,6 +55,7 @@ public class RabbitClientConfig extends AbstractStockAppRabbitConfiguration {
         return adapter;
     }
 
+    //trade response
     @Bean("traderJoeQueue")
     public Queue traderJoeQueue() {
         return new AnonymousQueue();
