@@ -4,8 +4,6 @@ import com.stock.converter.AddressToBytesConverter;
 import com.stock.converter.BytesToAddressConverter;
 import com.stock.converter.QuoteConverter;
 import com.stock.converter.QuoteListConverter;
-import com.stock.model.Quote;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -15,8 +13,6 @@ import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -27,7 +23,7 @@ import java.util.Arrays;
 public class RedisConfig {
     @Bean
     public LettuceConnectionFactory reidsConnectionFactory() {
-        return new LettuceConnectionFactory(new RedisStandaloneConfiguration("192.168.21.225", 6379));
+        return new LettuceConnectionFactory(new RedisStandaloneConfiguration("192.168.1.215", 6379));
     }
 
     @Bean

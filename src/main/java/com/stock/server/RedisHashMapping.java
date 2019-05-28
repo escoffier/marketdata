@@ -3,15 +3,14 @@ package com.stock.server;
 import com.stock.model.Quote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
-import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,19 +25,19 @@ public class RedisHashMapping {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisHashMapping.class);
 
-    @Autowired
-    @Qualifier("redisTemplate")
-    RedisTemplate<String, Object> redisTemplate;
+//    @Autowired
+//    @Qualifier("redisTemplate")
+//    RedisTemplate<String, Object> redisTemplate;
 
     //@Autowired
     @Resource(name="redisTemplate")
-    //HashOperations<String, String, Object> hashOperations;
+    ///HashOperations<String, String, Object> hashOperations;
     HashOperations<String, String, Object> hashOperations;
 
     HashMapper<Object, String, Object> mapper = new Jackson2HashMapper(false);
 
     public void writeHash(String key, Quote quote) {
-        //Map<String, Object> mappedHash = mapper.toHash(quote);
+        Map<String, Object> mappedHash = mapper.toHash(quote);
         //LOGGER.info("Quote key: " + key);
         System.out.println("---------------reidis hash key: " + key);
         //hashOperations.putAll(key, mappedHash);
@@ -54,7 +53,8 @@ public class RedisHashMapping {
      */
     public void pipelineWrite(List<Quote> quoteList) {
 
-        redisTemplate.executePipelined(new RedisCallback<Object>() {
+        //redisTemplate.executePipelined(new RedisCallback<Object>() {
+        hashOperations.getOperations().executePipelined(new RedisCallback<Object>() {
             @Override
             public Object doInRedis(RedisConnection connection) throws DataAccessException {
                 //LettuceConnection lettuceConnection = (LettuceConnection) connection;
@@ -71,14 +71,16 @@ public class RedisHashMapping {
 
     public void pipelineWrite1(List<Quote> quoteList) {
 
-        redisTemplate.executePipelined(new RedisCallback<Object>() {
+        //redisTemplate.executePipelined(new RedisCallback<Object>() {
+        hashOperations.getOperations().executePipelined(new RedisCallback<Object>() {
             @Override
             public Object doInRedis(RedisConnection connection) throws DataAccessException {
                 for (Quote quote : quoteList){
                     Map<String, Object> mappedHash = mapper.toHash(quote);
-                    //LOGGER.info("pipelineWrite1: " + quote);
+                    LOGGER.info("pipelineWrite1: " + quote.getId());
                     hashOperations.putAll(quote.getId(), mappedHash);
-                    redisTemplate.expire(quote.getId(), 30, TimeUnit.SECONDS);
+                    hashOperations.getOperations().expire(quote.getId(), 60, TimeUnit.SECONDS);
+                    //redisTemplate.expire(quote.getId(), 30, TimeUnit.SECONDS);
 
                 }
                 return null;
@@ -87,7 +89,8 @@ public class RedisHashMapping {
     }
 
     public void pipelineWrite2(List<Quote> quoteList) {
-        List<Object> txResults = redisTemplate.executePipelined(new SessionCallback<Object>() {
+        //List<Object> txResults = redisTemplate.executePipelined(new SessionCallback<Object>() {
+        List<Object> txResults = hashOperations.getOperations().executePipelined(new SessionCallback<Object>() {
             @Override
             public  Object execute(RedisOperations operations) throws DataAccessException {
                 //operations.multi();

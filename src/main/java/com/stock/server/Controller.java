@@ -1,8 +1,7 @@
 package com.stock.server;
 
-import com.stock.repository.PersonRepository;
-import com.stock.model.Person;
 import com.stock.model.Quote;
+import com.stock.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,9 +26,9 @@ public class Controller {
         return quote;
     }
 
-    @GetMapping("/person/{id}")
-    Person getPerson(@PathVariable("id") String id) {
-        return repository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
-        //return person;
-    }
+//    @GetMapping("/person/{id}")
+//    Person getPerson(@PathVariable("id") String id) {
+//        return repository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
+//        //return person;
+//    }
 }
